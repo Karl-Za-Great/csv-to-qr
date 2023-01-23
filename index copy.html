@@ -23,6 +23,7 @@
             <button class="gen" id="gen">Generate</button>
         </div>
         <div class="qr"  id="qr" style="display:flex;flex-direction: column;gap: 1px;">
+            <button id="download">Download Zip</button>
             <img src="" alt="" class="img" id="img">
             <div class="images" id="images" style="display:flex;flex-direction: wrap;gap: 1px;flex-wrap: wrap;"></div>
         </div>
@@ -95,15 +96,8 @@
                 images.appendChild(div)
                 i++
             }
-            download_zip(i,dat.length)
-            main.classList.add("active");
-        }
 
-        function download_zip(i,l) {
-            setTimeout(() => {
-                if (i == l){
-                zip.generateAsync({type:"blob"}).then(function(content) {saveAs(content, "qr-codes.zip");});
-            }}, 1500);
+            main.classList.add("active");
         }
 
         async function URLtoFile(url, name, max, cur) {
@@ -148,16 +142,9 @@
 
         document.getElementById("gen").onclick = gen
         document.getElementById("btn").onclick = OpenFile
-        document.getElementById("prt").onclick = prt    
-        document.getElementById("dl").onclick = dl
-
+        document.getElementById("download").onclick = dl
         function dl() {
-            document.getElementById("down").href = document.getElementById("img").src
-            document.getElementById("down").download = "qrcode.png"
-            document.getElementById("down").click()
-        }
-        function prt() {
-            printJS(document.getElementById("img").src, 'image')
+            zip.generateAsync({type:"blob"}).then(function(content) {saveAs(content, "qr-codes.zip");});
         }
     </script>
     <script src="script.js"></script>
