@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="qr\doc\qrcode-with-logo.min.js"></script>
+    <title>Document</title>
+</head>
+<body>
+    <img src="" alt="" id="image" />
+    <script type="module">
+        let qrcode = new QrCodeWithLogo({
+            image: document.getElementById("image"),
+            content: "https://github.com/zxpsuper",
+            width: 250,
+            //   download: true,
+            logo: {
+                src: "logo.jpg",
+                logoSize: 0.3
+            }
+        });
+        qrcode.toCanvas().then(() => {
+            qrcode.toImage()
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <script src="new\qr\doc\qrcode-with-logo.min.js"></script>
+    <script src="print.min.js"></script>
+    <title>Document</title>
+</head>
+<body>
+    <div class="main">
+        <header>
+            <h1>Generate QR Code</h1>
+            <p class="prog" id="prog"></p>
+        </header>
+        <div class="input">
+            <button id="btn">Pick File</button>
+            <button class="gen" id="gen">Generate</button>
+        </div>
+        <div class="qr"  style="display:flex;flex-direction: column;gap: 1px;">
+            <img src="" alt="" class="img" id="img">
+            <button id="prt">Print</button>    
+            <button id="dl">Download</button>
+        </div>
+    </div>
+    <a href="" download="" id="down" style="display: none;"></a>
+    <script type="module">
+        console.log(navigator.userAgent)
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.16.0/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.16.0/firebase-analytics.js";
+        const firebaseConfig = {
+          apiKey: "AIzaSyA1E3M0_hoTB8WxlLNphj-qh-0F-oO9H8I",
+          authDomain: "qrcod-cbd87.firebaseapp.com",
+          projectId: "qrcod-cbd87",
+          storageBucket: "qrcod-cbd87.appspot.com",
+          messagingSenderId: "369690776411",
+          appId: "1:369690776411:web:b96ea2342a3b2a763a407e",
+          measurementId: "G-LTKTZZ23SK"
+        };
+      
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        import {getStorage, ref as sRef,uploadBytesResumable,getDownloadURL} from "https://www.gstatic.com/firebasejs/9.16.0/firebase-storage.js"
+
+        let file_data
+        let url
+        var reader = new FileReader
+
+        async function upload(img) {
+            const storage = getStorage()
+            console.log(img)
+            const storage_ref = sRef(storage, "images/" + img.name)
+            const upload_task = uploadBytesResumable(storage_ref, img,".png")
+            upload_task.on('state-changed', (snapshot)=> {
+                var progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100
+                document.getElementById("prog").innerHTML = "Progress: " + Math.round(progress)+"%"
+                console.log(progress)
+            },
+            (error) =>{
+                alert("image not uploaded")
+            },
+            () =>{
+                getDownloadURL(upload_task.snapshot.ref).then((downloadURL) => {
+                    console.log(downloadURL)
+                    qr(downloadURL)
+                    alert("Image Generated!")
+                })
+            })
+        }       
+        function qr(dat) {
+            console.log(encodeURIComponent(dat))
+            let qrcode = new QrCodeWithLogo({
+                image: document.getElementById("img"),
+                content: dat,
+                width:130,
+                //   download: true,
+                logo: {
+                    src: "BCS Logo.png",
+                    logoSize: 0.2
+                }
+            });
+            qrcode.toCanvas().then(() => {
+                qrcode.toImage()
+            });
+                main.classList.add("active");
+        }
+
+        function gen() {
+            let data = file_data
+            console.log(data)
+            if(data == undefined) alert("no file selected").then(() => {return})
+            upload(data)
+        };
+
+        async function OpenFile() {
+            [files] = await window.showOpenFilePicker({     
+                types: [
+                {
+                description: 'Images',
+                accept: {
+                    'images/*': ['.png','.jpg', '.jpeg','.svg'],//Extensions you want to allow
+                },
+                },
+            ],
+            excludeAcceptAllOption: true, // this hides all files option
+            multiple: false,    
+            })
+            file_data = await files.getFile()
+            document.getElementById("prog").innerHTML = file_data.name
+            main.classList.remove('active')
+        }
+
+        document.getElementById("gen").onclick = gen
+        document.getElementById("btn").onclick = OpenFile
+        document.getElementById("prt").onclick = prt    
+        document.getElementById("dl").onclick = dl
+
+        function dl() {
+            document.getElementById("down").href = document.getElementById("img").src
+            document.getElementById("down").download = "qrcode.png"
+            document.getElementById("down").click()
+        }
+        function prt() {
+            printJS(document.getElementById("img").src, 'image')
+        }
+    </script>
+    <script src="script.js"></script>
+</body>
+</html>

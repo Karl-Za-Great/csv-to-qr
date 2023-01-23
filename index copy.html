@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <script src="new\qr\doc\qrcode-with-logo.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="print.min.js"></script>
+    <script src="node_modules/file-saver/dist/FileSaver.js"></script>
+    <script src="Stuk-jszip-2ceb998/dist/jszip.js"></script>
+    <title>Document</title>
+</head>
+<body>
+    <div class="main">
+        <header>
+            <h1>Generate QR Code</h1>
+            <p class="prog" id="prog"></p>
+        </header>
+        <div class="input">
+            <button id="btn">Pick File</button>
+            <button class="gen" id="gen">Generate</button>
+        </div>
+        <div class="qr"  id="qr" style="display:flex;flex-direction: column;gap: 1px;">
+            <img src="" alt="" class="img" id="img">
+            <div class="images" id="images" style="display:flex;flex-direction: wrap;gap: 1px;flex-wrap: wrap;"></div>
+        </div>
+    </div>
+    <a href="" download="" id="down" style="display: none;"></a>
+    <script type="module">
+        let file_data
+        let url
+        let files_array = []
+        var reader = new FileReader
+        var zip = new JSZip();
+        function getdata(dat) {
+            var i = 0
+            var data = []
+            var text = dat.split('\n')
+            var heads = text[0].split(",")
+            console.log(text)
+            while (i < text.length) {
+                if (i > 0){
+                    let cntnt = text[i].split(',')
+                    let no = cntnt[0]
+                    let name = cntnt[1]
+                    let lrn = cntnt[2]
+                    let parent = cntnt[3]
+                    let contactNO = cntnt[4]
+                    let grade = cntnt[5]
+                    if (text[i] != ''){
+                        let data_new = {
+                        'no': no,
+                        'name': name,
+                        'lrn': lrn,
+                        'parent':parent,
+                        'contactnum': contactNO,
+                        'grade': grade
+                    }
+                    data.push(data_new)
+                    }
+                }
+                i++;
+            }
+            console.log(data)
+            qr(data)
+        }
+
+        function qr(dat) {
+            var i = 0
+            while (i<dat.length) {
+                let data = dat[i]
+                let qr = document.getElementById("images")
+                let img = document.createElement('img');
+                let para = document.createElement("p");
+                let div = document.createElement("div");
+                para.innerHTML = data.name
+                img.id = "im"
+                img.className = "im"
+                div.appendChild(img)
+                div.append(para)
+                let qrcode = new QrCodeWithLogo({
+                    image: img,
+                    content: "number: " + data.no + "\n" + "name: " + data.name + "\n"+ "LRN: " + data.lrn + "\n"+ "parent: " + data.parent + "\n"+ "contact number: " + data.contactnum + "\n"+ "grade: " + data.grade,
+                    width:250,
+                    logo: {
+                        src: "BCS Logo.png",
+                        logoSize: 0.2
+                    }
+                });
+                    qrcode.toImage().then(() => {
+                        URLtoFile(qrcode.option.image.currentSrc, data.name, dat.length, i)
+                })
+                images.appendChild(div)
+                i++
+            }
+            download_zip(i,dat.length)
+            main.classList.add("active");
+        }
+
+        function download_zip(i,l) {
+            setTimeout(() => {
+                if (i == l){
+                zip.generateAsync({type:"blob"}).then(function(content) {saveAs(content, "qr-codes.zip");});
+            }}, 1500);
+        }
+
+        async function URLtoFile(url, name, max, cur) {
+            const res = await fetch(url);
+            const blob = await res.blob();
+            let imgURL = URL.createObjectURL(blob)
+            var image = new File([blob], name + "." + blob.type.split("/")[1])
+            files_array.push(image)
+            zip.file(image.name, image)
+        }
+
+        function gen() {
+            let data = file_data
+            const reader = new FileReader();
+            if(data == undefined) alert("no file selected").then(() => {return})
+            reader.readAsText(data)
+            reader.onload = function() {
+                getdata(reader.result)
+            };
+                reader.onerror = function() {
+                    alert(reader.error).then(() => {return})
+            }
+            
+        };
+        async function OpenFile() {
+            [files] = await window.showOpenFilePicker({     
+                types: [
+                {
+                description: 'Comma Seperated Values',
+                accept: {
+                    'images/*': ['.csv'],//Extensions you want to allow
+                },
+                },
+            ],
+            excludeAcceptAllOption: true, // this hides all files option
+            multiple: false,    
+            })
+            file_data = await files.getFile()
+            document.getElementById("prog").innerHTML = file_data.name
+            main.classList.remove('active')
+        }
+
+        document.getElementById("gen").onclick = gen
+        document.getElementById("btn").onclick = OpenFile
+        document.getElementById("prt").onclick = prt    
+        document.getElementById("dl").onclick = dl
+
+        function dl() {
+            document.getElementById("down").href = document.getElementById("img").src
+            document.getElementById("down").download = "qrcode.png"
+            document.getElementById("down").click()
+        }
+        function prt() {
+            printJS(document.getElementById("img").src, 'image')
+        }
+    </script>
+    <script src="script.js"></script>
+</body>
+</html>
